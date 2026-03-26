@@ -38,7 +38,7 @@ export function LogoScreen({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
           One.Zi
         </span>
         <span className={`font-display font-medium text-white/30 ${s.sub}`}>
-          Screen
+          Vídeos
         </span>
       </div>
     </div>

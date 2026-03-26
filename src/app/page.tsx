@@ -306,7 +306,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="w-full px-6 py-6 flex items-center justify-center gap-2">
         <LogoIcon size={18} />
-        <span className="text-white/15 text-xs">One.Zi Screen</span>
+        <span className="text-white/15 text-xs">One.Zi Vídeos</span>
       </footer>
     </div>
   );
