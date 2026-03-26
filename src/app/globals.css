@@ -1,45 +1,73 @@
 @import "tailwindcss";
 
 @theme {
+  /* Brand — OneZi palette */
   --color-ink: #1a1040;
-  --color-ink-light: #2a2060;
+  --color-ink-soft: #2a2060;
+  --color-ink-hover: #231658;
   --color-royal: #4c4cdf;
   --color-lavender: #8d9cf9;
   --color-neon: #d6ff7b;
+  --color-neon-dark: #b8e05a;
   --color-teal: #00b896;
   --color-pink: #fb5391;
   --color-soft-pink: #f2b0e5;
   --color-mint: #c0e78d;
   --color-purple: #b877d6;
   --color-yellow: #fbcc35;
+  --color-surface: #221850;
+  --color-surface-light: #2d2068;
 
+  /* Fonts */
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font-sans);
-  background: #f5f5f0;
-  color: var(--color-ink);
+  background-color: var(--color-ink);
+  color: #e8e4f0;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Video player custom styles */
+h1, h2, h3 {
+  font-family: var(--font-display);
+}
+
+/* Hide native video controls */
 video::-webkit-media-controls {
   display: none !important;
 }
 
-.progress-bar::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: white;
-  cursor: pointer;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+/* Gradient mesh background */
+.bg-mesh {
+  background-image:
+    radial-gradient(at 20% 20%, rgba(76, 76, 223, 0.15) 0, transparent 50%),
+    radial-gradient(at 80% 80%, rgba(184, 119, 214, 0.1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, rgba(141, 156, 249, 0.08) 0, transparent 50%);
 }
 
-.progress-bar::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 2px;
+/* Glass card */
+.glass {
+  background: rgba(42, 32, 96, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(141, 156, 249, 0.12);
+}
+
+/* Neon glow on hover */
+.glow-neon:hover {
+  box-shadow: 0 0 20px rgba(214, 255, 123, 0.3);
+}
+
+/* Smooth progress hover */
+.progress-track {
+  transition: height 0.15s ease;
+}
+.progress-track:hover {
+  height: 6px;
 }
