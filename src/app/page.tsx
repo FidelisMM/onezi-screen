@@ -8,7 +8,7 @@ const AUTHORS = [
   { name: "Caroll", avatar: "/avatars/caroll.jpg" },
 ];
 
-const UPLOAD_PASSWORD = "onezi2026";
+const UPLOAD_PASSWORD = "22051995";
 
 export default function Home() {
   const [authenticated, setAuthenticated] = useState(false);
