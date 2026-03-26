@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PutObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { r2, BUCKET, PUBLIC_URL } from "@/lib/r2";
+import { r2, BUCKET, type VideoMeta } from "@/lib/r2";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, slug, author, filename, contentType, size } = body;
+    const { title, slug, author, filename, contentType, size, expiresInDays } = body as {
+      title?: string;
+      slug?: string;
+      author?: string;
+      filename?: string;
+      contentType?: string;
+      size?: number;
+      expiresInDays?: number | null;
+    };
 
     if (!slug || !filename) {
       return NextResponse.json({ error: "Slug e filename obrigatórios" }, { status: 400 });
@@ -25,14 +33,23 @@ export async function POST(req: NextRequest) {
       { expiresIn: 600 }
     );
 
+    // Calcula data de expiração
+    let expiresAt: string | null = null;
+    if (expiresInDays && expiresInDays > 0) {
+      const expires = new Date();
+      expires.setDate(expires.getDate() + expiresInDays);
+      expiresAt = expires.toISOString();
+    }
+
     // Salva metadata como objeto JSON individual no R2
-    const meta = {
+    const meta: VideoMeta = {
       slug,
       title: title || slug,
       author: author || "Matheus",
       filename,
       createdAt: new Date().toISOString(),
       size: size || 0,
+      expiresAt,
     };
 
     await r2.send(

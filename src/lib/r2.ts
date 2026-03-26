@@ -19,27 +19,5 @@ export interface VideoMeta {
   filename: string;
   createdAt: string;
   size: number;
-}
-
-const META_KEY = "meta/videos.json";
-
-export async function loadMeta(): Promise<VideoMeta[]> {
-  try {
-    const res = await r2.send(new GetObjectCommand({ Bucket: BUCKET, Key: META_KEY }));
-    const body = await res.Body?.transformToString();
-    return body ? JSON.parse(body) : [];
-  } catch {
-    return [];
-  }
-}
-
-export async function saveMeta(videos: VideoMeta[]) {
-  await r2.send(
-    new PutObjectCommand({
-      Bucket: BUCKET,
-      Key: META_KEY,
-      Body: JSON.stringify(videos, null, 2),
-      ContentType: "application/json",
-    })
-  );
+  expiresAt: string | null;
 }

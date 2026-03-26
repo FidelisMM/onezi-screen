@@ -56,6 +56,27 @@ export default function PlayerPage() {
       .catch(() => setLoading(false));
   }, [slug]);
 
+  // Track view on load
+  useEffect(() => {
+    if (video) {
+      fetch(`/api/videos/${slug}/view`, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" }).catch(() => {});
+    }
+  }, [video, slug]);
+
+  // Track watch time on unload
+  useEffect(() => {
+    const sendWatchTime = () => {
+      if (videoRef.current && videoRef.current.currentTime > 0) {
+        navigator.sendBeacon(
+          `/api/videos/${slug}/view`,
+          JSON.stringify({ watchTime: Math.round(videoRef.current.currentTime) })
+        );
+      }
+    };
+    window.addEventListener("beforeunload", sendWatchTime);
+    return () => window.removeEventListener("beforeunload", sendWatchTime);
+  }, [slug]);
+
   const togglePlay = useCallback(() => {
     if (!videoRef.current) return;
     if (videoRef.current.paused) { videoRef.current.play(); setIsPlaying(true); }
