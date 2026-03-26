@@ -43,8 +43,9 @@ export async function POST(req: NextRequest) {
       url: `/${slug}`,
       slug,
     });
-  } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json({ error: "Falha ao gerar upload URL" }, { status: 500 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Upload error:", msg, error);
+    return NextResponse.json({ error: `Falha: ${msg}` }, { status: 500 });
   }
 }

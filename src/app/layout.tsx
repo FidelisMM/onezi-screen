@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "One.Zi Screen",
-  description: "Grave, compartilhe e assista screen recordings com estilo.",
+  title: "One.Zi - Vídeos",
+  description: "Grave, compartilhe e assista seus vídeos com estilo.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
