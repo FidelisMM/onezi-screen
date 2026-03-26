@@ -16,18 +16,30 @@ export async function POST(req: NextRequest) {
     const key = `videos/${filename}`;
 
     // Gera URL assinada (válida por 10 min)
-    const presignedUrl = await getSignedUrl(
-      r2,
-      new PutObjectCommand({
-        Bucket: BUCKET,
-        Key: key,
-        ContentType: contentType || "video/mp4",
-      }),
-      { expiresIn: 600 }
-    );
+    let presignedUrl: string;
+    try {
+      presignedUrl = await getSignedUrl(
+        r2,
+        new PutObjectCommand({
+          Bucket: BUCKET,
+          Key: key,
+          ContentType: contentType || "video/mp4",
+        }),
+        { expiresIn: 600 }
+      );
+    } catch (e: unknown) {
+      const m = e instanceof Error ? e.message : String(e);
+      console.error("Presign error:", m);
+      return NextResponse.json({ error: `Presign falhou: ${m}` }, { status: 500 });
+    }
 
     // Salva metadata
-    const videos = await loadMeta();
+    let videos;
+    try {
+      videos = await loadMeta();
+    } catch {
+      videos = [] as import("@/lib/r2").VideoMeta[];
+    }
     videos.push({
       slug,
       title: title || slug,
