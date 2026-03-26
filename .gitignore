@@ -1,0 +1,16 @@
+# deps
+node_modules/
+
+# next
+.next/
+out/
+
+# env
+.env*.local
+
+# data
+data/
+public/videos/
+
+# os
+.DS_Store
