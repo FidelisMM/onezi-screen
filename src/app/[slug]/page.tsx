@@ -12,14 +12,6 @@ interface VideoData {
   createdAt: string;
 }
 
-const REACTIONS = [
-  { emoji: "\u{1F602}", label: "haha" },
-  { emoji: "\u{1F60D}", label: "love" },
-  { emoji: "\u{1F97A}", label: "wow" },
-  { emoji: "\u{1F64C}", label: "celebrate" },
-  { emoji: "\u{1F44D}", label: "like" },
-  { emoji: "\u{1F525}", label: "fire" },
-];
 
 function formatTime(s: number) {
   const m = Math.floor(s / 60);
@@ -55,10 +47,6 @@ export default function PlayerPage() {
   const [showControls, setShowControls] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const [hoverProgress, setHoverProgress] = useState<number | null>(null);
-  const [reactions, setReactions] = useState<Record<string, number>>(
-    Object.fromEntries(REACTIONS.map((r) => [r.label, 0]))
-  );
-  const [userReaction, setUserReaction] = useState<string | null>(null);
   const hideTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -123,14 +111,6 @@ export default function PlayerPage() {
     setTimeout(() => setCopied(false), 2000);
   }, []);
 
-  const handleReaction = useCallback((label: string) => {
-    setReactions((prev) => {
-      const next = { ...prev };
-      if (userReaction === label) { next[label] = Math.max(0, next[label] - 1); setUserReaction(null); }
-      else { if (userReaction) next[userReaction] = Math.max(0, next[userReaction] - 1); next[label]++; setUserReaction(label); }
-      return next;
-    });
-  }, [userReaction]);
 
   const onMouseMove = useCallback(() => {
     setShowControls(true);
@@ -321,25 +301,6 @@ export default function PlayerPage() {
           </div>
         </div>
 
-        {/* Reactions */}
-        <div className="mt-5 flex items-center">
-          <div className="flex items-center gap-0.5 bg-white/[0.03] border border-white/[0.05] rounded-full px-1 py-1">
-            {REACTIONS.map((r) => (
-              <button
-                key={r.label}
-                onClick={() => handleReaction(r.label)}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-base transition-all hover:scale-110 active:scale-95 ${
-                  userReaction === r.label ? "bg-lavender/15 ring-1 ring-lavender/25" : "hover:bg-white/[0.05]"
-                }`}
-              >
-                {r.emoji}
-                {reactions[r.label] > 0 && (
-                  <span className="text-[10px] font-semibold text-neon">{reactions[r.label]}</span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
       </main>
 
       {/* Footer */}
