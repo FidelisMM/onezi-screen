@@ -38,22 +38,53 @@ export default function Home() {
     setSlug(toSlug(name));
   };
 
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const handleUpload = async () => {
     if (!uploadedFile || !slug) return;
     setUploading(true);
-    const formData = new FormData();
-    formData.append("file", uploadedFile);
-    formData.append("title", title);
-    formData.append("slug", slug);
-    formData.append("author", author);
+    setUploadProgress(0);
+
     try {
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const ext = uploadedFile.name.split(".").pop() || "mp4";
+      const filename = `${slug}.${ext}`;
+
+      // 1. Pega presigned URL da API
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          slug,
+          author,
+          filename,
+          contentType: uploadedFile.type,
+          size: uploadedFile.size,
+        }),
+      });
       const data = await res.json();
-      if (data.url) setUploadedUrl(data.url);
+      if (!data.presignedUrl) throw new Error(data.error || "Falha ao gerar URL");
+
+      // 2. Upload direto pro R2 via XHR (pra ter progresso)
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+        };
+        xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`Upload falhou: ${xhr.status}`)));
+        xhr.onerror = () => reject(new Error("Erro de rede"));
+        xhr.open("PUT", data.presignedUrl);
+        xhr.setRequestHeader("Content-Type", uploadedFile.type);
+        xhr.send(uploadedFile);
+      });
+
+      setUploadedUrl(data.url);
     } catch (err) {
       console.error("Upload failed:", err);
+      alert("Falha no upload. Tente novamente.");
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -226,7 +257,7 @@ export default function Home() {
                   disabled={uploading}
                   className="w-full py-3.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-neon text-ink hover:brightness-105 active:scale-[0.99]"
                 >
-                  {uploading ? "Enviando..." : "Publicar"}
+                  {uploading ? `Enviando... ${uploadProgress}%` : "Publicar"}
                 </button>
               </div>
             )}

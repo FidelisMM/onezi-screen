@@ -1,48 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { r2, BUCKET, loadMeta, saveMeta } from "@/lib/r2";
 
+// Step 1: Gerar presigned URL pra upload direto ao R2
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const title = formData.get("title") as string;
-    const slug = formData.get("slug") as string;
-    const author = (formData.get("author") as string) || "Matheus";
+    const body = await req.json();
+    const { title, slug, author, filename, contentType, size } = body;
 
-    if (!file || !slug) {
-      return NextResponse.json({ error: "Arquivo e slug obrigatórios" }, { status: 400 });
+    if (!slug || !filename) {
+      return NextResponse.json({ error: "Slug e filename obrigatórios" }, { status: 400 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const ext = file.name.split(".").pop() || "mp4";
-    const filename = `${slug}.${ext}`;
+    const key = `videos/${filename}`;
 
-    // Upload vídeo pro R2
-    await r2.send(
+    // Gera URL assinada (válida por 10 min)
+    const presignedUrl = await getSignedUrl(
+      r2,
       new PutObjectCommand({
         Bucket: BUCKET,
-        Key: `videos/${filename}`,
-        Body: buffer,
-        ContentType: file.type,
-      })
+        Key: key,
+        ContentType: contentType || "video/mp4",
+      }),
+      { expiresIn: 600 }
     );
 
-    // Salvar metadata no R2
+    // Salva metadata
     const videos = await loadMeta();
     videos.push({
       slug,
-      title,
-      author,
+      title: title || slug,
+      author: author || "Matheus",
       filename,
       createdAt: new Date().toISOString(),
-      size: file.size,
+      size: size || 0,
     });
     await saveMeta(videos);
 
-    return NextResponse.json({ url: `/${slug}`, slug });
+    return NextResponse.json({
+      presignedUrl,
+      url: `/${slug}`,
+      slug,
+    });
   } catch (error) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Falha no upload" }, { status: 500 });
+    return NextResponse.json({ error: "Falha ao gerar upload URL" }, { status: 500 });
   }
 }
