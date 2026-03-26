@@ -345,7 +345,7 @@ export default function PlayerPage() {
       {/* Footer */}
       <footer className="w-full px-6 py-6 flex items-center justify-center gap-2">
         <LogoIcon size={16} />
-        <span className="text-white/15 text-xs">Gravado com One.Zi Screen</span>
+        <span className="text-white/15 text-xs">Gravado com One.Zi</span>
       </footer>
     </div>
   );

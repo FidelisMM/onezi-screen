@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { r2, BUCKET, loadMeta, saveMeta } from "@/lib/r2";
+import { r2, BUCKET, PUBLIC_URL } from "@/lib/r2";
 
-// Step 1: Gerar presigned URL pra upload direto ao R2
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -15,49 +14,40 @@ export async function POST(req: NextRequest) {
 
     const key = `videos/${filename}`;
 
-    // Gera URL assinada (válida por 10 min)
-    let presignedUrl: string;
-    try {
-      presignedUrl = await getSignedUrl(
-        r2,
-        new PutObjectCommand({
-          Bucket: BUCKET,
-          Key: key,
-          ContentType: contentType || "video/mp4",
-        }),
-        { expiresIn: 600 }
-      );
-    } catch (e: unknown) {
-      const m = e instanceof Error ? e.message : String(e);
-      console.error("Presign error:", m);
-      return NextResponse.json({ error: `Presign falhou: ${m}` }, { status: 500 });
-    }
+    // Gera URL assinada (válida por 10 min) — isso é local, não chama R2
+    const presignedUrl = await getSignedUrl(
+      r2,
+      new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        ContentType: contentType || "video/mp4",
+      }),
+      { expiresIn: 600 }
+    );
 
-    // Salva metadata
-    let videos;
-    try {
-      videos = await loadMeta();
-    } catch {
-      videos = [] as import("@/lib/r2").VideoMeta[];
-    }
-    videos.push({
+    // Salva metadata como objeto JSON individual no R2
+    const meta = {
       slug,
       title: title || slug,
       author: author || "Matheus",
       filename,
       createdAt: new Date().toISOString(),
       size: size || 0,
-    });
-    await saveMeta(videos);
+    };
 
-    return NextResponse.json({
-      presignedUrl,
-      url: `/${slug}`,
-      slug,
-    });
+    await r2.send(
+      new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: `meta/${slug}.json`,
+        Body: JSON.stringify(meta),
+        ContentType: "application/json",
+      })
+    );
+
+    return NextResponse.json({ presignedUrl, url: `/${slug}`, slug });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error("Upload error:", msg, error);
+    console.error("Upload error:", msg);
     return NextResponse.json({ error: `Falha: ${msg}` }, { status: 500 });
   }
 }

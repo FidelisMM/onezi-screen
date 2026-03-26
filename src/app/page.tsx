@@ -94,7 +94,7 @@ export default function Home() {
       <nav className="w-full px-6 py-4 flex items-center justify-between max-w-5xl mx-auto">
         <LogoScreen size="sm" />
         <div className="flex items-center gap-4">
-          <span className="text-white/20 text-xs hidden sm:block">Compartilhe seus screen recordings</span>
+          <span className="text-white/20 text-xs hidden sm:block">Compartilhe seus vídeos</span>
         </div>
       </nav>
 
@@ -145,7 +145,7 @@ export default function Home() {
                 Grave. Suba. Compartilhe.
               </h1>
               <p className="text-white/35 mt-2">
-                Seus screen recordings com link profissional
+                Seus vídeos com link profissional
               </p>
             </div>
 
